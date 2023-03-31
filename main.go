@@ -75,6 +75,10 @@ func main() {
 	json.Unmarshal(bytes, &Products)
 	router := gin.Default()
 
+	router.GET("/ping", func(ctx *gin.Context) {
+		ctx.String(200, "pong")
+	})
+
 	gopher := router.Group("/products")
 	gopher.GET("/", GetAllProducts)
 	gopher.GET("/:id", GetProductByID)
