@@ -26,7 +26,13 @@ func GetAllProducts(ctx *gin.Context) {
 }
 
 func GetProductByID(ctx *gin.Context) {
-	id, _ := strconv.Atoi(ctx.Param("id"))
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(400, gin.H{
+			"message": "El parámetro id debe ser un número entero",
+		})
+		return
+	}
 	for _, product := range Products {
 		if product.ID == id {
 			ctx.JSON(200, product)
@@ -39,10 +45,16 @@ func GetProductByID(ctx *gin.Context) {
 }
 
 func GetSearchProduct(ctx *gin.Context) {
-	priceGT, _ := strconv.Atoi(ctx.Query("priceGT"))
+	priceGt, err := strconv.ParseFloat(ctx.Query("priceGt"), 64)
+	if err != nil {
+		ctx.JSON(400, gin.H{
+			"message": "El parámetro PriceGt debe ser un número",
+		})
+		return
+	}
 	foundProducts := []Product{}
 	for _, product := range Products {
-		if product.Price > float64(priceGT) {
+		if product.Price > priceGt {
 			foundProducts = append(foundProducts, product)
 		}
 	}
