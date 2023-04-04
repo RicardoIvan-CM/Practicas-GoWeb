@@ -24,7 +24,7 @@ var (
 func NewJSONRepository(fileName string) (repository *JSONRepository, err error) {
 	var store = &JSONRepository{}
 
-	archivo, err := os.Open(fileName)
+	archivo, err := os.OpenFile(fileName, os.O_RDWR, 0644)
 	if err != nil {
 		return nil, ErrFileNotOpened
 	}
@@ -43,9 +43,10 @@ func NewJSONRepository(fileName string) (repository *JSONRepository, err error) 
 func (repository *JSONRepository) writeJSON() error {
 	//Escribir en el archivo
 	bytes, _ := json.MarshalIndent(repository.data, "", "")
-	_, err := repository.file.Write(bytes)
+	repository.file.Truncate(0)
+	_, err := repository.file.WriteAt(bytes, 0)
 	if err != nil {
-		return ErrFileNotWritable
+		return err
 	}
 
 	return nil
