@@ -20,14 +20,8 @@ func (router *Router) Setup() {
 
 func (router *Router) SetProductRoutes() {
 	repository := product.NewSliceRepository()
-
-	service := product.DefaultService{
-		Storage: repository,
-	}
-
-	handler := ProductHandler{
-		Service: service,
-	}
+	service := product.NewDefaultService(repository)
+	handler := NewProductHandler(service)
 
 	group := router.Engine.Group("/products")
 	{

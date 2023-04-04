@@ -17,6 +17,12 @@ type ProductHandler struct {
 	Service product.Service
 }
 
+func NewProductHandler(service product.Service) *ProductHandler {
+	return &ProductHandler{
+		Service: service,
+	}
+}
+
 func ValidateProductRequest(req *ProductRequest) error {
 	if req.Name == "" {
 		return ErrProductNameRequired

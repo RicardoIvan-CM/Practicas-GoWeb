@@ -6,6 +6,12 @@ type DefaultService struct {
 	Storage Repository
 }
 
+func NewDefaultService(storage Repository) (defaultService *DefaultService) {
+	return &DefaultService{
+		Storage: storage,
+	}
+}
+
 func (s DefaultService) Create(product *domain.Product) (err error) {
 	return s.Storage.Create(product)
 }
