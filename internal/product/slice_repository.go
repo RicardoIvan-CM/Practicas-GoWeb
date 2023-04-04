@@ -7,6 +7,12 @@ type SliceRepository struct {
 	lastProductID int
 }
 
+func NewSliceRepository() (repository *SliceRepository) {
+	return &SliceRepository{
+		data: []domain.Product{},
+	}
+}
+
 func (repository *SliceRepository) Create(product *domain.Product) error {
 	repository.lastProductID++
 	product.ID = repository.lastProductID
@@ -54,16 +60,11 @@ func (repository *SliceRepository) Update(product *domain.Product) error {
 }
 
 func (repository *SliceRepository) Delete(id int) error {
-	var index int = -1
-	for i, p := range repository.data {
-		if p.ID == id {
-			index = i
-			break
+	for index, product := range repository.data {
+		if product.ID == id {
+			repository.data = append(repository.data[:index], repository.data[index+1:]...)
+			return nil
 		}
-	}
-	if index > 0 {
-		repository.data = append(repository.data[:index], repository.data[index+1])
-		return nil
 	}
 	return ErrProductNotFound
 }

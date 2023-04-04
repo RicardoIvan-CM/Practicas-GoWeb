@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -16,7 +17,7 @@ type ProductHandler struct {
 	Service product.Service
 }
 
-func ValidatePostProductRequest(req *ProductRequest) error {
+func ValidateProductRequest(req *ProductRequest) error {
 	if req.Name == "" {
 		return ErrProductNameRequired
 	}
@@ -50,7 +51,7 @@ func (handler ProductHandler) Create() gin.HandlerFunc {
 			log.Println("Error :", err.Error())
 			return
 		}
-		err := ValidatePostProductRequest(&req)
+		err := ValidateProductRequest(&req)
 		if err != nil {
 			ctx.JSON(400, rest.ErrorResponse{
 				Error: err.Error(),
@@ -93,15 +94,21 @@ func (handler ProductHandler) GetByID() gin.HandlerFunc {
 				Error: err.Error(),
 			})
 		}
-		product, err := handler.Service.GetByID(id)
+		producto, err := handler.Service.GetByID(id)
 		if err != nil {
-			ctx.JSON(500, rest.ErrorResponse{
-				Error: err.Error(),
-			})
+			if errors.Is(err, product.ErrProductNotFound) {
+				ctx.JSON(404, rest.ErrorResponse{
+					Error: err.Error(),
+				})
+			} else {
+				ctx.JSON(500, rest.ErrorResponse{
+					Error: err.Error(),
+				})
+			}
 			return
 		}
 		ctx.JSON(200, rest.SuccessfulResponse{
-			Data: product,
+			Data: producto,
 		})
 	}
 }
@@ -135,6 +142,7 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 			ctx.JSON(400, rest.ErrorResponse{
 				Error: err.Error(),
 			})
+			return
 		}
 
 		if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -145,7 +153,7 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		if err := ValidatePostProductRequest(&req); err != nil {
+		if err := ValidateProductRequest(&req); err != nil {
 			ctx.JSON(400, rest.ErrorResponse{
 				Error: err.Error(),
 			})
@@ -156,9 +164,15 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 		newProduct.ID = id
 
 		if err := handler.Service.Update(&newProduct); err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
-			})
+			if errors.Is(err, product.ErrProductNotFound) {
+				ctx.JSON(404, rest.ErrorResponse{
+					Error: err.Error(),
+				})
+			} else {
+				ctx.JSON(500, rest.ErrorResponse{
+					Error: err.Error(),
+				})
+			}
 			return
 		}
 
@@ -175,29 +189,37 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 			ctx.JSON(400, rest.ErrorResponse{
 				Error: err.Error(),
 			})
+			return
 		}
-		product, err := handler.Service.GetByID(id)
+		producto, err := handler.Service.GetByID(id)
 		if err != nil {
-			ctx.JSON(500, rest.ErrorResponse{
+			if errors.Is(err, product.ErrProductNotFound) {
+				ctx.JSON(404, rest.ErrorResponse{
+					Error: err.Error(),
+				})
+			} else {
+				ctx.JSON(500, rest.ErrorResponse{
+					Error: err.Error(),
+				})
+			}
+			return
+		}
+		if err := json.NewDecoder(ctx.Request.Body).Decode(&producto); err != nil {
+			ctx.JSON(400, rest.ErrorResponse{
 				Error: err.Error(),
 			})
 			return
 		}
-		if err := json.NewDecoder(ctx.Request.Body).Decode(&product); err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
-			})
-		}
-		product.ID = id
+		producto.ID = id
 
-		if err := handler.Service.Update(product); err != nil {
+		if err := handler.Service.Update(producto); err != nil {
 			ctx.JSON(400, rest.ErrorResponse{
 				Error: err.Error(),
 			})
 			return
 		}
 		ctx.JSON(200, rest.SuccessfulResponse{
-			Data: product,
+			Data: producto,
 		})
 	}
 }
@@ -209,12 +231,19 @@ func (handler ProductHandler) Delete() gin.HandlerFunc {
 			ctx.JSON(400, rest.ErrorResponse{
 				Error: err.Error(),
 			})
+			return
 		}
 
 		if err := handler.Service.Delete(id); err != nil {
-			ctx.JSON(500, rest.ErrorResponse{
-				Error: err.Error(),
-			})
+			if errors.Is(err, product.ErrProductNotFound) {
+				ctx.JSON(404, rest.ErrorResponse{
+					Error: err.Error(),
+				})
+			} else {
+				ctx.JSON(500, rest.ErrorResponse{
+					Error: err.Error(),
+				})
+			}
 			return
 		}
 

@@ -19,7 +19,8 @@ func (router *Router) Setup() {
 }
 
 func (router *Router) SetProductRoutes() {
-	repository := &product.SliceRepository{}
+	repository := product.NewSliceRepository()
+
 	service := product.DefaultService{
 		Storage: repository,
 	}
