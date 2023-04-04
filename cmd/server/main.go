@@ -3,26 +3,14 @@ package main
 import (
 	"github.com/RicardoIvan-CM/Practicas-GoWeb/cmd/server/handler"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
-/*
-func GetJSONProducts() {
-	file, err := os.Open("products.json")
-	if err != nil {
-		panic("El archivo no pudo ser abierto")
-	}
-
-	bytes, err := io.ReadAll(file)
-	if err != nil {
-		panic("El archivo no pudo ser leido")
-	}
-
-	json.Unmarshal(bytes, &Products)
-}*/
-
 func main() {
-	//GetJSONProducts()
-
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 	//Generar nuevo router en Gin
 	server := gin.New()
 

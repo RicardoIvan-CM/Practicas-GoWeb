@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strconv"
 
 	"github.com/RicardoIvan-CM/Practicas-GoWeb/internal/product"
-	"github.com/RicardoIvan-CM/Practicas-GoWeb/pkg/rest"
+	"github.com/RicardoIvan-CM/Practicas-GoWeb/pkg/web"
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,32 +47,59 @@ func ValidateProductRequest(req *ProductRequest) error {
 	return nil
 }
 
+var ErrInvalidToken = errors.New("The user token is not valid")
+
+func verifyToken(userToken string) error {
+	token := os.Getenv("TOKEN")
+	if userToken != token {
+		return ErrInvalidToken
+	}
+	return nil
+}
+
 func (handler ProductHandler) Create() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		//Verificacion de Token
+		userToken := ctx.GetHeader("TOKEN")
+		if err := verifyToken(userToken); err != nil {
+			ctx.JSON(401, web.ErrorResponse{
+				Status:  401,
+				Code:    "InvalidTokenError",
+				Message: err.Error(),
+			})
+			return
+		}
+
 		//Obtener peticion y validarla
 		var req ProductRequest
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			log.Println("Error :", err.Error())
 			return
 		}
 		err := ValidateProductRequest(&req)
 		if err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			return
 		}
 		newProduct := req.ToDomain()
 		if err = handler.Service.Create(&newProduct); err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			return
 		}
-		ctx.JSON(200, rest.SuccessfulResponse{
+		ctx.JSON(200, web.SuccessfulResponse{
 			Data: newProduct,
 		})
 	}
@@ -81,12 +109,14 @@ func (handler ProductHandler) GetAll() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		products, err := handler.Service.GetAll()
 		if err != nil {
-			ctx.JSON(500, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(500, web.ErrorResponse{
+				Status:  500,
+				Code:    "InternalError",
+				Message: err.Error(),
 			})
 			return
 		}
-		ctx.JSON(200, rest.SuccessfulResponse{
+		ctx.JSON(200, web.SuccessfulResponse{
 			Data: products,
 		})
 	}
@@ -96,24 +126,30 @@ func (handler ProductHandler) GetByID() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, err := strconv.Atoi(ctx.Param("id"))
 		if err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 		}
 		producto, err := handler.Service.GetByID(id)
 		if err != nil {
 			if errors.Is(err, product.ErrProductNotFound) {
-				ctx.JSON(404, rest.ErrorResponse{
-					Error: err.Error(),
+				ctx.JSON(404, web.ErrorResponse{
+					Status:  404,
+					Code:    "NotFoundError",
+					Message: err.Error(),
 				})
 			} else {
-				ctx.JSON(500, rest.ErrorResponse{
-					Error: err.Error(),
+				ctx.JSON(500, web.ErrorResponse{
+					Status:  500,
+					Code:    "InternalError",
+					Message: err.Error(),
 				})
 			}
 			return
 		}
-		ctx.JSON(200, rest.SuccessfulResponse{
+		ctx.JSON(200, web.SuccessfulResponse{
 			Data: producto,
 		})
 	}
@@ -123,18 +159,22 @@ func (handler ProductHandler) GetBySearch() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		priceGt, err := strconv.ParseFloat(ctx.Query("priceGt"), 64)
 		if err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 		}
 		product, err := handler.Service.GetByID(int(priceGt))
 		if err != nil {
-			ctx.JSON(500, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(500, web.ErrorResponse{
+				Status:  500,
+				Code:    "InternalError",
+				Message: err.Error(),
 			})
 			return
 		}
-		ctx.JSON(200, rest.SuccessfulResponse{
+		ctx.JSON(200, web.SuccessfulResponse{
 			Data: product,
 		})
 	}
@@ -142,26 +182,43 @@ func (handler ProductHandler) GetBySearch() gin.HandlerFunc {
 
 func (handler ProductHandler) Update() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		//Verificacion de Token
+		userToken := ctx.GetHeader("TOKEN")
+		if err := verifyToken(userToken); err != nil {
+			ctx.JSON(401, web.ErrorResponse{
+				Status:  401,
+				Code:    "InvalidTokenError",
+				Message: err.Error(),
+			})
+			return
+		}
+
 		var req ProductRequest
 		id, err := strconv.Atoi(ctx.Param("id"))
 		if err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			return
 		}
 
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			log.Println("Error :", err.Error())
 			return
 		}
 
 		if err := ValidateProductRequest(&req); err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			return
 		}
@@ -171,18 +228,22 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 
 		if err := handler.Service.Update(&newProduct); err != nil {
 			if errors.Is(err, product.ErrProductNotFound) {
-				ctx.JSON(404, rest.ErrorResponse{
-					Error: err.Error(),
+				ctx.JSON(404, web.ErrorResponse{
+					Status:  404,
+					Code:    "NotFoundError",
+					Message: err.Error(),
 				})
 			} else {
-				ctx.JSON(500, rest.ErrorResponse{
-					Error: err.Error(),
+				ctx.JSON(500, web.ErrorResponse{
+					Status:  500,
+					Code:    "InternalError",
+					Message: err.Error(),
 				})
 			}
 			return
 		}
 
-		ctx.JSON(200, rest.SuccessfulResponse{
+		ctx.JSON(200, web.SuccessfulResponse{
 			Data: newProduct,
 		})
 	}
@@ -190,41 +251,62 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 
 func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		//Verificacion de Token
+		userToken := ctx.GetHeader("TOKEN")
+		if err := verifyToken(userToken); err != nil {
+			ctx.JSON(401, web.ErrorResponse{
+				Status:  401,
+				Code:    "InvalidTokenError",
+				Message: err.Error(),
+			})
+			return
+		}
+
 		id, err := strconv.Atoi(ctx.Param("id"))
 		if err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			return
 		}
 		producto, err := handler.Service.GetByID(id)
 		if err != nil {
 			if errors.Is(err, product.ErrProductNotFound) {
-				ctx.JSON(404, rest.ErrorResponse{
-					Error: err.Error(),
+				ctx.JSON(404, web.ErrorResponse{
+					Status:  404,
+					Code:    "NotFoundError",
+					Message: err.Error(),
 				})
 			} else {
-				ctx.JSON(500, rest.ErrorResponse{
-					Error: err.Error(),
+				ctx.JSON(500, web.ErrorResponse{
+					Status:  500,
+					Code:    "InternalError",
+					Message: err.Error(),
 				})
 			}
 			return
 		}
 		if err := json.NewDecoder(ctx.Request.Body).Decode(&producto); err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			return
 		}
 		producto.ID = id
 
 		if err := handler.Service.Update(producto); err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			return
 		}
-		ctx.JSON(200, rest.SuccessfulResponse{
+		ctx.JSON(200, web.SuccessfulResponse{
 			Data: producto,
 		})
 	}
@@ -232,22 +314,40 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 
 func (handler ProductHandler) Delete() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+
+		//Verificacion de Token
+		userToken := ctx.GetHeader("TOKEN")
+		if err := verifyToken(userToken); err != nil {
+			ctx.JSON(401, web.ErrorResponse{
+				Status:  401,
+				Code:    "InvalidTokenError",
+				Message: err.Error(),
+			})
+			return
+		}
+
 		id, err := strconv.Atoi(ctx.Param("id"))
 		if err != nil {
-			ctx.JSON(400, rest.ErrorResponse{
-				Error: err.Error(),
+			ctx.JSON(400, web.ErrorResponse{
+				Status:  400,
+				Code:    "RequestError",
+				Message: err.Error(),
 			})
 			return
 		}
 
 		if err := handler.Service.Delete(id); err != nil {
 			if errors.Is(err, product.ErrProductNotFound) {
-				ctx.JSON(404, rest.ErrorResponse{
-					Error: err.Error(),
+				ctx.JSON(404, web.ErrorResponse{
+					Status:  404,
+					Code:    "NotFoundError",
+					Message: err.Error(),
 				})
 			} else {
-				ctx.JSON(500, rest.ErrorResponse{
-					Error: err.Error(),
+				ctx.JSON(500, web.ErrorResponse{
+					Status:  500,
+					Code:    "InternalError",
+					Message: err.Error(),
 				})
 			}
 			return
