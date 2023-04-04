@@ -19,3 +19,11 @@ func (s DefaultService) GetByID(id int) (*domain.Product, error) {
 func (s DefaultService) GetBySearch(priceGt float64) ([]domain.Product, error) {
 	return s.Storage.GetBySearch(priceGt)
 }
+
+func (s DefaultService) Update(product *domain.Product) error {
+	return s.Storage.Update(product)
+}
+
+func (s DefaultService) Delete(id int) error {
+	return s.Storage.Delete(id)
+}

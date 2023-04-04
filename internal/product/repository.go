@@ -11,6 +11,8 @@ type Repository interface {
 	GetAll() ([]domain.Product, error)
 	GetByID(id int) (*domain.Product, error)
 	GetBySearch(priceGt float64) ([]domain.Product, error)
+	Update(*domain.Product) error
+	Delete(id int) error
 }
 
 var ErrProductCodeValueExists = errors.New("The codevalue already exists")

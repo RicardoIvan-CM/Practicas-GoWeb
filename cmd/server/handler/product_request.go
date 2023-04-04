@@ -6,7 +6,7 @@ import (
 	"github.com/RicardoIvan-CM/Practicas-GoWeb/internal/domain"
 )
 
-type CreateProductRequest struct {
+type ProductRequest struct {
 	Name        string  `json:"name" binding:"required"`
 	Quantity    int     `json:"quantity" binding:"required"`
 	CodeValue   string  `json:"code_value" binding:"required"`
@@ -24,7 +24,7 @@ var (
 	ErrProductPriceInvalid       = errors.New("The price is invalid")
 )
 
-func (req *CreateProductRequest) ToDomain() domain.Product {
+func (req *ProductRequest) ToDomain() domain.Product {
 	var newProduct = domain.Product{
 		Name:        req.Name,
 		Quantity:    req.Quantity,

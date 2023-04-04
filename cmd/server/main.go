@@ -23,23 +23,17 @@ func GetJSONProducts() {
 func main() {
 	//GetJSONProducts()
 
-	router := gin.Default()
+	//Generar nuevo router en Gin
+	server := gin.New()
 
-	router.GET("/ping", func(ctx *gin.Context) {
-		ctx.String(200, "pong")
-	})
+	//condigurar el router
 
-	var handler handler.ProductHandler
-
-	gopher := router.Group("/products")
-	{
-		gopher.GET("/", handler.GetAll())
-		gopher.POST("/", handler.Create())
-		gopher.GET("/:id", handler.GetByID())
-		gopher.GET("/search", handler.GetBySearch())
+	router := handler.Router{
+		Engine: server,
 	}
+	router.Setup()
 
-	if err := router.Run(":8080"); err != nil {
+	if err := server.Run(":8080"); err != nil {
 		panic(err)
 	}
 }

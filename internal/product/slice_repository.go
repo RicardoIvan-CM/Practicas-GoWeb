@@ -42,3 +42,28 @@ func (repository *SliceRepository) GetBySearch(priceGt float64) (result []domain
 	}
 	return foundProducts, nil
 }
+
+func (repository *SliceRepository) Update(product *domain.Product) error {
+	for i, p := range repository.data {
+		if p.ID == product.ID {
+			repository.data[i] = *product
+			return nil
+		}
+	}
+	return ErrProductNotFound
+}
+
+func (repository *SliceRepository) Delete(id int) error {
+	var index int = -1
+	for i, p := range repository.data {
+		if p.ID == id {
+			index = i
+			break
+		}
+	}
+	if index > 0 {
+		repository.data = append(repository.data[:index], repository.data[index+1])
+		return nil
+	}
+	return ErrProductNotFound
+}
