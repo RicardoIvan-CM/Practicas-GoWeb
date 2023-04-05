@@ -19,6 +19,9 @@ func (s DefaultService) Create(product *domain.Product) (err error) {
 func (s DefaultService) GetAll() ([]domain.Product, error) {
 	return s.Storage.GetAll()
 }
+func (s DefaultService) GetConsumerPrice(ids []int) (float64, []domain.Product, error) {
+	return s.Storage.GetConsumerPrice(ids)
+}
 func (s DefaultService) GetByID(id int) (*domain.Product, error) {
 	return s.Storage.GetByID(id)
 }

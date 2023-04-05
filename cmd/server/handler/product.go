@@ -8,7 +8,9 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
+	"github.com/RicardoIvan-CM/Practicas-GoWeb/internal/domain"
 	"github.com/RicardoIvan-CM/Practicas-GoWeb/internal/product"
 	"github.com/RicardoIvan-CM/Practicas-GoWeb/pkg/web"
 	"github.com/gin-gonic/gin"
@@ -118,6 +120,52 @@ func (handler ProductHandler) GetAll() gin.HandlerFunc {
 		}
 		ctx.JSON(200, web.SuccessfulResponse{
 			Data: products,
+		})
+	}
+}
+
+type ConsumerPriceData struct {
+	Products   []domain.Product `json:"products"`
+	TotalPrice float64          `json:"total_price"`
+}
+
+func (handler ProductHandler) GetConsumerPrice() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		listStr := ctx.Query("list")
+		valuesStr := listStr[1 : len(listStr)-1]
+		valuesStrArr := strings.Split(valuesStr, ",")
+
+		var ids []int
+
+		for _, idStr := range valuesStrArr {
+			idStr = strings.TrimSpace(idStr)
+			id, err := strconv.Atoi(idStr)
+			if err != nil {
+				ctx.JSON(400, web.ErrorResponse{
+					Status:  400,
+					Code:    "RequestError",
+					Message: err.Error(),
+				})
+				return
+			}
+			ids = append(ids, id)
+		}
+
+		consumerPrice, products, err := handler.Service.GetConsumerPrice(ids)
+		if err != nil {
+			ctx.JSON(500, web.ErrorResponse{
+				Status:  500,
+				Code:    "InternalError",
+				Message: err.Error(),
+			})
+			return
+		}
+
+		ctx.JSON(200, web.SuccessfulResponse{
+			Data: ConsumerPriceData{
+				products,
+				consumerPrice,
+			},
 		})
 	}
 }

@@ -1,6 +1,11 @@
 package product
 
-import "github.com/RicardoIvan-CM/Practicas-GoWeb/internal/domain"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/RicardoIvan-CM/Practicas-GoWeb/internal/domain"
+)
 
 type SliceRepository struct {
 	data          []domain.Product
@@ -28,6 +33,58 @@ func (repository *SliceRepository) Create(product *domain.Product) error {
 func (repository *SliceRepository) GetAll() (result []domain.Product, err error) {
 	result = repository.data
 	return result, nil
+}
+
+type boughtProduct struct {
+	Product      *domain.Product
+	SoldQuantity int
+}
+
+func (repository *SliceRepository) GetConsumerPrice(ids []int) (price float64, products []domain.Product, err error) {
+
+	boughtProducts := make(map[int]*boughtProduct)
+
+	var cuentaProductos int
+	var precioTotal float64 = 0.0
+
+	for _, id := range ids {
+		product, err := repository.GetByID(id)
+		if err != nil {
+			return 0, nil, err
+		}
+		if !product.IsPublished {
+			return 0, nil, errors.New(fmt.Sprintf("El producto %d no está publicado", id))
+		}
+		if bp, ok := boughtProducts[id]; ok {
+			bp.SoldQuantity++
+			if bp.SoldQuantity > bp.Product.Quantity {
+				return 0, nil, errors.New(fmt.Sprintf("La cantidad solicitada del producto %d supera el stock", id))
+			}
+		} else {
+			boughtProducts[id] = &boughtProduct{
+				product,
+				1,
+			}
+			cuentaProductos++
+		}
+		precioTotal += product.Price
+	}
+
+	boughtList := []domain.Product{}
+
+	for _, bp := range boughtProducts {
+		boughtList = append(boughtList, *bp.Product)
+	}
+
+	if cuentaProductos > 20 {
+		return precioTotal * 1.15, boughtList, nil
+	}
+
+	if cuentaProductos > 10 {
+		return precioTotal * 1.17, boughtList, nil
+	}
+
+	return precioTotal * 1.21, boughtList, nil
 }
 
 func (repository *SliceRepository) GetByID(id int) (result *domain.Product, err error) {
