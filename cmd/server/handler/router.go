@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/RicardoIvan-CM/Practicas-GoWeb/internal/product"
+	"github.com/RicardoIvan-CM/Practicas-GoWeb/pkg/store"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,11 +20,11 @@ func (router *Router) Setup() {
 }
 
 func (router *Router) SetProductRoutes() {
-	/*repository, err := store.NewJSONRepository("../../products.json")
+	repository, err := store.NewJSONRepository("../../products.json")
 	if err != nil {
 		panic(err)
-	}*/
-	repository := product.NewSliceRepository()
+	}
+	//repository := product.NewSliceRepository()
 	service := product.NewDefaultService(repository)
 	handler := NewProductHandler(service)
 

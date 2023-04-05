@@ -78,7 +78,7 @@ func (handler ProductHandler) Create() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The request is not valid",
 			})
 			log.Println("Error :", err.Error())
 			return
@@ -88,12 +88,13 @@ func (handler ProductHandler) Create() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The request is not valid",
 			})
 			return
 		}
 		newProduct := req.ToDomain()
-		if err = handler.Service.Create(&newProduct); err != nil {
+		created, err := handler.Service.Create(&newProduct)
+		if err != nil {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
@@ -102,7 +103,7 @@ func (handler ProductHandler) Create() gin.HandlerFunc {
 			return
 		}
 		ctx.JSON(201, web.SuccessfulResponse{
-			Data: newProduct,
+			Data: created,
 		})
 	}
 }
@@ -144,7 +145,7 @@ func (handler ProductHandler) GetConsumerPrice() gin.HandlerFunc {
 				ctx.JSON(400, web.ErrorResponse{
 					Status:  400,
 					Code:    "RequestError",
-					Message: err.Error(),
+					Message: "An entered id is not valid",
 				})
 				return
 			}
@@ -177,8 +178,9 @@ func (handler ProductHandler) GetByID() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The ID is not valid",
 			})
+			return
 		}
 		producto, err := handler.Service.GetByID(id)
 		if err != nil {
@@ -186,7 +188,7 @@ func (handler ProductHandler) GetByID() gin.HandlerFunc {
 				ctx.JSON(404, web.ErrorResponse{
 					Status:  404,
 					Code:    "NotFoundError",
-					Message: err.Error(),
+					Message: "The requested product was not found",
 				})
 			} else {
 				ctx.JSON(500, web.ErrorResponse{
@@ -210,8 +212,9 @@ func (handler ProductHandler) GetBySearch() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The value of the priceGt parameter is not valid",
 			})
+			return
 		}
 		product, err := handler.Service.GetByID(int(priceGt))
 		if err != nil {
@@ -236,7 +239,7 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 			ctx.JSON(401, web.ErrorResponse{
 				Status:  401,
 				Code:    "InvalidTokenError",
-				Message: err.Error(),
+				Message: "The user token is not valid",
 			})
 			return
 		}
@@ -247,7 +250,7 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The ID is not valid",
 			})
 			return
 		}
@@ -256,7 +259,7 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The request is not valid",
 			})
 			log.Println("Error :", err.Error())
 			return
@@ -266,7 +269,7 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The request is not valid",
 			})
 			return
 		}
@@ -279,7 +282,7 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 				ctx.JSON(404, web.ErrorResponse{
 					Status:  404,
 					Code:    "NotFoundError",
-					Message: err.Error(),
+					Message: "The requested product was not found",
 				})
 			} else {
 				ctx.JSON(500, web.ErrorResponse{
@@ -305,7 +308,7 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 			ctx.JSON(401, web.ErrorResponse{
 				Status:  401,
 				Code:    "InvalidTokenError",
-				Message: err.Error(),
+				Message: "The user token is not valid",
 			})
 			return
 		}
@@ -315,7 +318,7 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The ID is not valid",
 			})
 			return
 		}
@@ -325,7 +328,7 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 				ctx.JSON(404, web.ErrorResponse{
 					Status:  404,
 					Code:    "NotFoundError",
-					Message: err.Error(),
+					Message: "The requested product was not found",
 				})
 			} else {
 				ctx.JSON(500, web.ErrorResponse{
@@ -340,7 +343,7 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The request is not valid",
 			})
 			return
 		}
@@ -379,7 +382,7 @@ func (handler ProductHandler) Delete() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: err.Error(),
+				Message: "The ID is not valid",
 			})
 			return
 		}
@@ -389,7 +392,7 @@ func (handler ProductHandler) Delete() gin.HandlerFunc {
 				ctx.JSON(404, web.ErrorResponse{
 					Status:  404,
 					Code:    "NotFoundError",
-					Message: err.Error(),
+					Message: "The requested product was not found",
 				})
 			} else {
 				ctx.JSON(500, web.ErrorResponse{

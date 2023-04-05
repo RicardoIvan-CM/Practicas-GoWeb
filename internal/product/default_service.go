@@ -12,7 +12,7 @@ func NewDefaultService(storage Repository) (defaultService *DefaultService) {
 	}
 }
 
-func (s DefaultService) Create(product *domain.Product) (err error) {
+func (s DefaultService) Create(product *domain.Product) (*domain.Product, error) {
 	return s.Storage.Create(product)
 }
 

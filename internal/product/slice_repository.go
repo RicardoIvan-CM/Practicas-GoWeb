@@ -18,16 +18,16 @@ func NewSliceRepository() (repository *SliceRepository) {
 	}
 }
 
-func (repository *SliceRepository) Create(product *domain.Product) error {
+func (repository *SliceRepository) Create(product *domain.Product) (*domain.Product, error) {
 	repository.lastProductID++
 	product.ID = repository.lastProductID
 	for _, p := range repository.data {
 		if product.CodeValue == p.CodeValue {
-			return ErrProductCodeValueExists
+			return nil, ErrProductCodeValueExists
 		}
 	}
 	repository.data = append(repository.data, *product)
-	return nil
+	return product, nil
 }
 
 func (repository *SliceRepository) GetAll() (result []domain.Product, err error) {
