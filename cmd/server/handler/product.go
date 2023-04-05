@@ -101,7 +101,7 @@ func (handler ProductHandler) Create() gin.HandlerFunc {
 			})
 			return
 		}
-		ctx.JSON(200, web.SuccessfulResponse{
+		ctx.JSON(201, web.SuccessfulResponse{
 			Data: newProduct,
 		})
 	}
