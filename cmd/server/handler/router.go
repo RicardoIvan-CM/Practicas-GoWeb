@@ -20,11 +20,8 @@ func (router *Router) Setup() {
 }
 
 func (router *Router) SetProductRoutes() {
-	repository, err := store.NewJSONRepository("../../products.json")
-	if err != nil {
-		panic(err)
-	}
-	//repository := product.NewSliceRepository()
+	storage := store.NewJSONstore("../../products.json")
+	repository := product.NewDefaultRepository(storage)
 	service := product.NewDefaultService(repository)
 	handler := NewProductHandler(service)
 

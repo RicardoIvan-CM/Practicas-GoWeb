@@ -21,13 +21,9 @@ func createTestServer() (*gin.Engine, error) {
 		return nil, err
 	}
 
-	repository, err := store.NewJSONRepository("../../../test_products.json")
-	if err != nil {
-		panic(err)
-	}
-
 	router := gin.Default()
-	//repository := product.NewSliceRepository()
+	storage := store.NewJSONstore("../../../test_products.json")
+	repository := product.NewDefaultRepository(storage)
 	service := product.NewDefaultService(repository)
 	handler := NewProductHandler(service)
 

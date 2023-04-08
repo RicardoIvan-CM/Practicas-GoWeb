@@ -64,22 +64,14 @@ func (handler ProductHandler) Create() gin.HandlerFunc {
 		//Verificacion de Token
 		userToken := ctx.GetHeader("TOKEN")
 		if err := verifyToken(userToken); err != nil {
-			ctx.JSON(401, web.ErrorResponse{
-				Status:  401,
-				Code:    "InvalidTokenError",
-				Message: err.Error(),
-			})
+			ctx.JSON(401, web.InvalidTokenResponse)
 			return
 		}
 
 		//Obtener peticion y validarla
 		var req ProductRequest
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			ctx.JSON(400, web.ErrorResponse{
-				Status:  400,
-				Code:    "RequestError",
-				Message: "The request is not valid",
-			})
+			ctx.JSON(400, web.InvalidRequestResponse)
 			log.Println("Error :", err.Error())
 			return
 		}
@@ -88,12 +80,12 @@ func (handler ProductHandler) Create() gin.HandlerFunc {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
-				Message: "The request is not valid",
+				Message: err.Error(),
 			})
 			return
 		}
 		newProduct := req.ToDomain()
-		created, err := handler.Service.Create(&newProduct)
+		created, err := handler.Service.Create(newProduct)
 		if err != nil {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
@@ -185,11 +177,7 @@ func (handler ProductHandler) GetByID() gin.HandlerFunc {
 		producto, err := handler.Service.GetByID(id)
 		if err != nil {
 			if errors.Is(err, product.ErrProductNotFound) {
-				ctx.JSON(404, web.ErrorResponse{
-					Status:  404,
-					Code:    "NotFoundError",
-					Message: "The requested product was not found",
-				})
+				ctx.JSON(404, web.NotFoundResponse)
 			} else {
 				ctx.JSON(500, web.ErrorResponse{
 					Status:  500,
@@ -236,11 +224,7 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 		//Verificacion de Token
 		userToken := ctx.GetHeader("TOKEN")
 		if err := verifyToken(userToken); err != nil {
-			ctx.JSON(401, web.ErrorResponse{
-				Status:  401,
-				Code:    "InvalidTokenError",
-				Message: "The user token is not valid",
-			})
+			ctx.JSON(401, web.InvalidTokenResponse)
 			return
 		}
 
@@ -256,34 +240,24 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 		}
 
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			ctx.JSON(400, web.ErrorResponse{
-				Status:  400,
-				Code:    "RequestError",
-				Message: "The request is not valid",
-			})
+			ctx.JSON(400, web.InvalidRequestResponse)
 			log.Println("Error :", err.Error())
 			return
 		}
 
 		if err := ValidateProductRequest(&req); err != nil {
-			ctx.JSON(400, web.ErrorResponse{
-				Status:  400,
-				Code:    "RequestError",
-				Message: "The request is not valid",
-			})
+			ctx.JSON(400, web.InvalidRequestResponse)
 			return
 		}
 
 		newProduct := req.ToDomain()
 		newProduct.ID = id
 
-		if err := handler.Service.Update(&newProduct); err != nil {
+		createdProduct, err := handler.Service.Update(newProduct)
+
+		if err != nil {
 			if errors.Is(err, product.ErrProductNotFound) {
-				ctx.JSON(404, web.ErrorResponse{
-					Status:  404,
-					Code:    "NotFoundError",
-					Message: "The requested product was not found",
-				})
+				ctx.JSON(404, web.NotFoundResponse)
 			} else {
 				ctx.JSON(500, web.ErrorResponse{
 					Status:  500,
@@ -295,7 +269,7 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 		}
 
 		ctx.JSON(200, web.SuccessfulResponse{
-			Data: newProduct,
+			Data: createdProduct,
 		})
 	}
 }
@@ -305,11 +279,7 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 		//Verificacion de Token
 		userToken := ctx.GetHeader("TOKEN")
 		if err := verifyToken(userToken); err != nil {
-			ctx.JSON(401, web.ErrorResponse{
-				Status:  401,
-				Code:    "InvalidTokenError",
-				Message: "The user token is not valid",
-			})
+			ctx.JSON(401, web.InvalidTokenResponse)
 			return
 		}
 
@@ -325,11 +295,7 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 		producto, err := handler.Service.GetByID(id)
 		if err != nil {
 			if errors.Is(err, product.ErrProductNotFound) {
-				ctx.JSON(404, web.ErrorResponse{
-					Status:  404,
-					Code:    "NotFoundError",
-					Message: "The requested product was not found",
-				})
+				ctx.JSON(404, web.NotFoundResponse)
 			} else {
 				ctx.JSON(500, web.ErrorResponse{
 					Status:  500,
@@ -349,7 +315,8 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 		}
 		producto.ID = id
 
-		if err := handler.Service.Update(producto); err != nil {
+		product, err := handler.Service.Update(producto)
+		if err != nil {
 			ctx.JSON(400, web.ErrorResponse{
 				Status:  400,
 				Code:    "RequestError",
@@ -358,7 +325,7 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 			return
 		}
 		ctx.JSON(200, web.SuccessfulResponse{
-			Data: producto,
+			Data: product,
 		})
 	}
 }
@@ -369,11 +336,7 @@ func (handler ProductHandler) Delete() gin.HandlerFunc {
 		//Verificacion de Token
 		userToken := ctx.GetHeader("TOKEN")
 		if err := verifyToken(userToken); err != nil {
-			ctx.JSON(401, web.ErrorResponse{
-				Status:  401,
-				Code:    "InvalidTokenError",
-				Message: err.Error(),
-			})
+			ctx.JSON(401, web.InvalidTokenResponse)
 			return
 		}
 
@@ -389,11 +352,7 @@ func (handler ProductHandler) Delete() gin.HandlerFunc {
 
 		if err := handler.Service.Delete(id); err != nil {
 			if errors.Is(err, product.ErrProductNotFound) {
-				ctx.JSON(404, web.ErrorResponse{
-					Status:  404,
-					Code:    "NotFoundError",
-					Message: "The requested product was not found",
-				})
+				ctx.JSON(404, web.NotFoundResponse)
 			} else {
 				ctx.JSON(500, web.ErrorResponse{
 					Status:  500,

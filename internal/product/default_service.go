@@ -3,36 +3,36 @@ package product
 import "github.com/RicardoIvan-CM/Practicas-GoWeb/internal/domain"
 
 type DefaultService struct {
-	Storage Repository
+	Repository Repository
 }
 
-func NewDefaultService(storage Repository) (defaultService *DefaultService) {
+func NewDefaultService(repository Repository) Service {
 	return &DefaultService{
-		Storage: storage,
+		Repository: repository,
 	}
 }
 
-func (s DefaultService) Create(product *domain.Product) (*domain.Product, error) {
-	return s.Storage.Create(product)
+func (s *DefaultService) Create(product domain.Product) (domain.Product, error) {
+	return s.Repository.Create(product)
 }
 
-func (s DefaultService) GetAll() ([]domain.Product, error) {
-	return s.Storage.GetAll()
+func (s *DefaultService) GetAll() ([]domain.Product, error) {
+	return s.Repository.GetAll()
 }
-func (s DefaultService) GetConsumerPrice(ids []int) (float64, []domain.Product, error) {
-	return s.Storage.GetConsumerPrice(ids)
+func (s *DefaultService) GetConsumerPrice(ids []int) (float64, []domain.Product, error) {
+	return s.Repository.GetConsumerPrice(ids)
 }
-func (s DefaultService) GetByID(id int) (*domain.Product, error) {
-	return s.Storage.GetByID(id)
+func (s *DefaultService) GetByID(id int) (domain.Product, error) {
+	return s.Repository.GetByID(id)
 }
-func (s DefaultService) GetBySearch(priceGt float64) ([]domain.Product, error) {
-	return s.Storage.GetBySearch(priceGt)
-}
-
-func (s DefaultService) Update(product *domain.Product) error {
-	return s.Storage.Update(product)
+func (s *DefaultService) GetBySearch(priceGt float64) ([]domain.Product, error) {
+	return s.Repository.GetBySearch(priceGt)
 }
 
-func (s DefaultService) Delete(id int) error {
-	return s.Storage.Delete(id)
+func (s *DefaultService) Update(product domain.Product) (domain.Product, error) {
+	return s.Repository.Update(product)
+}
+
+func (s *DefaultService) Delete(id int) error {
+	return s.Repository.Delete(id)
 }
