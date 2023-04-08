@@ -145,7 +145,7 @@ func TestGet(t *testing.T) {
 		expectedBody := `{
 			"status":404,
 			"code":"NotFoundError",
-			"message":"The requested product was not found"
+			"message":"The requested resource was not found"
 		}`
 
 		//Arrange
