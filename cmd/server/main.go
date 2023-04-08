@@ -14,8 +14,7 @@ func main() {
 	//Generar nuevo router en Gin
 	server := gin.New()
 
-	//condigurar el router
-
+	//Configurar el router
 	router := handler.Router{
 		Engine: server,
 	}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -51,22 +50,8 @@ func ValidateProductRequest(req *ProductRequest) error {
 
 var ErrInvalidToken = errors.New("The user token is not valid")
 
-func verifyToken(userToken string) error {
-	token := os.Getenv("TOKEN")
-	if userToken != token {
-		return ErrInvalidToken
-	}
-	return nil
-}
-
 func (handler ProductHandler) Create() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		//Verificacion de Token
-		userToken := ctx.GetHeader("TOKEN")
-		if err := verifyToken(userToken); err != nil {
-			ctx.JSON(401, web.InvalidTokenResponse)
-			return
-		}
 
 		//Obtener peticion y validarla
 		var req ProductRequest
@@ -221,13 +206,6 @@ func (handler ProductHandler) GetBySearch() gin.HandlerFunc {
 
 func (handler ProductHandler) Update() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		//Verificacion de Token
-		userToken := ctx.GetHeader("TOKEN")
-		if err := verifyToken(userToken); err != nil {
-			ctx.JSON(401, web.InvalidTokenResponse)
-			return
-		}
-
 		var req ProductRequest
 		id, err := strconv.Atoi(ctx.Param("id"))
 		if err != nil {
@@ -276,13 +254,6 @@ func (handler ProductHandler) Update() gin.HandlerFunc {
 
 func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		//Verificacion de Token
-		userToken := ctx.GetHeader("TOKEN")
-		if err := verifyToken(userToken); err != nil {
-			ctx.JSON(401, web.InvalidTokenResponse)
-			return
-		}
-
 		id, err := strconv.Atoi(ctx.Param("id"))
 		if err != nil {
 			ctx.JSON(400, web.ErrorResponse{
@@ -332,14 +303,6 @@ func (handler ProductHandler) UpdatePartial() gin.HandlerFunc {
 
 func (handler ProductHandler) Delete() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
-		//Verificacion de Token
-		userToken := ctx.GetHeader("TOKEN")
-		if err := verifyToken(userToken); err != nil {
-			ctx.JSON(401, web.InvalidTokenResponse)
-			return
-		}
-
 		id, err := strconv.Atoi(ctx.Param("id"))
 		if err != nil {
 			ctx.JSON(400, web.ErrorResponse{

@@ -28,4 +28,10 @@ var (
 		Code:    "NotFoundError",
 		Message: "The requested resource was not found",
 	}
+
+	InternalErrorResponse = ErrorResponse{
+		Status:  500,
+		Code:    "InternalError",
+		Message: "An internal error has occurred",
+	}
 )
