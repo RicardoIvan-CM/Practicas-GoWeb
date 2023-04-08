@@ -50,6 +50,16 @@ func ValidateProductRequest(req *ProductRequest) error {
 
 var ErrInvalidToken = errors.New("The user token is not valid")
 
+// @Summary Create Product
+// @Tags Products
+// @Description Create a Product
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param body body ProductRequest true "Product"
+// @Success 201 {object} web.SuccessfulResponse
+// @Failure 400 {object} web.ErrorResponse
+// @Router /products [post]
 func (handler ProductHandler) Create() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -85,6 +95,14 @@ func (handler ProductHandler) Create() gin.HandlerFunc {
 	}
 }
 
+// @Summary List Products
+// @Tags Products
+// @Description Get All Products
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Success 200 {object} web.SuccessfulResponse
+// @Router /products [get]
 func (handler ProductHandler) GetAll() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		products, err := handler.Service.GetAll()

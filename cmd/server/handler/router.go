@@ -42,6 +42,6 @@ func (router *Router) SetProductRoutes() {
 	}
 
 	router.Engine.GET("/panic", func(ctx *gin.Context) {
-		panic("Nani!?")
+		panic("Qué ha pasado!?")
 	})
 }
