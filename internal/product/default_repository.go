@@ -28,8 +28,11 @@ func (repository *DefaultRepository) Create(product domain.Product) (domain.Prod
 			return domain.Product{}, ErrProductCodeValueExists
 		}
 	}
-	repository.storage.AddOne(product)
-	return product, nil
+	createdProduct, err := repository.storage.AddOne(product)
+	if err != nil {
+		return domain.Product{}, err
+	}
+	return createdProduct, nil
 }
 
 func (repository *DefaultRepository) GetAll() (result []domain.Product, err error) {

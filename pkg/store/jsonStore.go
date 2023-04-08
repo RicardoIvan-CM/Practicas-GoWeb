@@ -11,7 +11,7 @@ import (
 type Store interface {
 	GetAll() ([]domain.Product, error)
 	GetOne(id int) (domain.Product, error)
-	AddOne(product domain.Product) error
+	AddOne(product domain.Product) (domain.Product, error)
 	UpdateOne(product domain.Product) error
 	DeleteOne(id int) error
 	saveProducts(products []domain.Product) error
@@ -80,14 +80,18 @@ func (store *JSONstore) GetOne(id int) (domain.Product, error) {
 }
 
 // AddOne implements Store
-func (store *JSONstore) AddOne(product domain.Product) error {
+func (store *JSONstore) AddOne(product domain.Product) (domain.Product, error) {
 	products, err := store.loadProducts()
 	if err != nil {
-		return err
+		return domain.Product{}, err
 	}
 	product.ID = len(products) + 1
 	products = append(products, product)
-	return store.saveProducts(products)
+	err = store.saveProducts(products)
+	if err != nil {
+		return domain.Product{}, err
+	}
+	return product, nil
 }
 
 // UpdateOne implements Store

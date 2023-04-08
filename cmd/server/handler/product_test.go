@@ -2,11 +2,13 @@ package handler
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
+	"github.com/RicardoIvan-CM/Practicas-GoWeb/internal/domain"
 	"github.com/RicardoIvan-CM/Practicas-GoWeb/internal/product"
 	"github.com/RicardoIvan-CM/Practicas-GoWeb/pkg/store"
 	"github.com/gin-gonic/gin"
@@ -48,6 +50,31 @@ func createRequestTest(method string, url string, body string) (*http.Request, *
 	req.Header.Add("TOKEN", "MITOKEN123")
 
 	return req, httptest.NewRecorder()
+}
+
+func loadProducts(path string) ([]domain.Product, error) {
+	var products []domain.Product
+	file, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal([]byte(file), &products)
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
+}
+
+func writeProducts(path string, list []domain.Product) error {
+	bytes, err := json.Marshal(list)
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(path, bytes, 0644)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func TestGetAll(t *testing.T) {
@@ -183,11 +210,17 @@ func TestCreate(t *testing.T) {
 			panic(err)
 		}
 
+		//Cargar productos antes de la prueba
+		defaultProducts, _ := loadProducts("../../../test_products.json")
+
 		//Act
 		request, respRecorder := createRequestTest(http.MethodPost, "/products/", `{
 			"name":"Pelota","quantity":12,"code_value":"PELO1","is_published":true,"expiration":"09/08/2023","price":35
 		}`)
 		server.ServeHTTP(respRecorder, request)
+
+		//Guardar y dejar los productos como estaban antes de la prueba
+		writeProducts("../../../test_products.json", defaultProducts)
 
 		//Assert
 		assert.Equal(t, 201, respRecorder.Code)
@@ -241,9 +274,15 @@ func TestDelete(t *testing.T) {
 			panic(err)
 		}
 
+		//Cargar productos antes de la prueba
+		defaultProducts, _ := loadProducts("../../../test_products.json")
+
 		//Act
 		request, respRecorder := createRequestTest(http.MethodDelete, "/products/2", "")
 		server.ServeHTTP(respRecorder, request)
+
+		//Guardar y dejar los productos como estaban antes de la prueba
+		writeProducts("../../../test_products.json", defaultProducts)
 
 		//Assert
 		assert.Equal(t, 204, respRecorder.Code)
